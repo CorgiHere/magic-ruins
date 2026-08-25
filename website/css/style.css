@@ -263,17 +263,19 @@ button { font-family: inherit; cursor: pointer; }
 }
 
 .split {
-  display: grid;
-  grid-template-columns: 1.05fr 1fr;
-  gap: 36px;
-  width: min(980px, 100%);
+  display: flex;
+  gap: 14px;
+  width: min(920px, 100%);
   align-items: center;
+  justify-content: center;
 }
 
 .story-list {
   list-style: none;
   display: grid;
-  gap: 16px;
+  gap: 12px;
+  flex: 0 1 auto;
+  max-width: 22rem;
   font-size: clamp(1.05rem, 2.2vw, 1.4rem);
   font-weight: 700;
   line-height: 1.55;
@@ -282,7 +284,7 @@ button { font-family: inherit; cursor: pointer; }
 
 .story-list .emphasis {
   color: #ffe9ff;
-  margin-top: 8px;
+  margin-top: 4px;
   letter-spacing: 0.08em;
 }
 
@@ -292,6 +294,8 @@ button { font-family: inherit; cursor: pointer; }
   padding: 10px 12px;
   box-shadow: 0 16px 40px rgba(0, 0, 0, 0.28);
   overflow: hidden;
+  flex: 1 1 380px;
+  max-width: 460px;
 }
 
 .diagram-img {
@@ -601,7 +605,8 @@ button { font-family: inherit; cursor: pointer; }
 .modal-actions { display: flex; gap: 12px; flex-wrap: wrap; justify-content: center; }
 
 @media (max-width: 860px) {
-  .split { grid-template-columns: 1fr; }
+  .split { flex-direction: column; gap: 12px; }
+  .story-list { max-width: 100%; }
   .nav-arrow { display: none; }
   .item-card img { height: 120px; }
   .carousel { grid-template-columns: 36px minmax(0, 1fr) 36px; }
