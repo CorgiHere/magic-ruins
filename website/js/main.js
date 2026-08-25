@@ -303,6 +303,116 @@ const SlotSfx = {
   },
 };
 
+const SpinSfx = {
+  id: "zfXp4_sge8w",
+  player: null,
+  ready: false,
+  loading: false,
+  looping: false,
+
+  init() {
+    if (this.player || this.loading) return;
+    this.loading = true;
+    window.onYouTubeIframeAPIReady = () => this.create();
+    if (window.YT && window.YT.Player) {
+      this.create();
+      return;
+    }
+    const tag = document.createElement("script");
+    tag.src = "https://www.youtube.com/iframe_api";
+    tag.onerror = () => {
+      this.loading = false;
+    };
+    document.head.appendChild(tag);
+  },
+
+  create() {
+    if (this.player) return;
+    const mount = document.getElementById("yt-spin");
+    if (!mount || !window.YT || !window.YT.Player) return;
+    this.player = new window.YT.Player(mount, {
+      videoId: this.id,
+      width: 200,
+      height: 200,
+      playerVars: {
+        autoplay: 0,
+        controls: 0,
+        disablekb: 1,
+        fs: 0,
+        modestbranding: 1,
+        playsinline: 1,
+        rel: 0,
+        origin: location.origin,
+      },
+      events: {
+        onReady: () => {
+          this.ready = true;
+          this.player.setVolume(100);
+        },
+        onStateChange: (event) => {
+          if (this.looping && event.data === window.YT.PlayerState.ENDED) {
+            this.player.seekTo(0, true);
+            this.player.playVideo();
+          }
+        },
+        onError: () => {
+          this.ready = false;
+        },
+      },
+    });
+  },
+
+  async waitReady(ms = 1200) {
+    this.init();
+    const start = Date.now();
+    while (!this.ready && Date.now() - start < ms) {
+      await sleep(80);
+    }
+    return this.ready;
+  },
+
+  play() {
+    this.init();
+    if (!this.ready || !this.player || typeof this.player.playVideo !== "function") return false;
+    this.looping = true;
+    try {
+      this.player.unMute();
+      this.player.setVolume(100);
+      this.player.seekTo(0, true);
+      this.player.playVideo();
+    } catch (err) {
+      this.looping = false;
+      return false;
+    }
+    return true;
+  },
+
+  stop() {
+    this.looping = false;
+    if (this.player && typeof this.player.pauseVideo === "function") {
+      try {
+        this.player.pauseVideo();
+        this.player.seekTo(0, true);
+      } catch (err) {
+        /* player not ready */
+      }
+    }
+  },
+};
+
+let duckedBgm = null;
+
+function duckBgm() {
+  if (duckedBgm == null) duckedBgm = bgm.volume;
+  if (!bgm.paused) bgm.volume = Math.min(duckedBgm, 0.22);
+}
+
+function unduckBgm() {
+  if (duckedBgm == null) return;
+  if (!bgm.paused) bgm.volume = duckedBgm;
+  duckedBgm = null;
+}
+
 async function drawPrize() {
   if (drawing) return;
   drawing = true;
@@ -311,10 +421,13 @@ async function drawPrize() {
   stopAutoplay();
   carouselStage.classList.add("spinning");
   SlotSfx.ensure();
-  SlotSfx.lever();
-  SlotSfx.startWhir();
-  const prevBgm = bgm.volume;
-  if (!bgm.paused) bgm.volume = Math.min(prevBgm, 0.28);
+  duckBgm();
+  await SpinSfx.waitReady();
+  const spinning = SpinSfx.play();
+  if (!spinning) {
+    SlotSfx.lever();
+    SlotSfx.startWhir();
+  }
 
   const winner = Math.floor(Math.random() * TOTAL);
   const extra = (winner - frontIndex + TOTAL) % TOTAL;
@@ -322,12 +435,13 @@ async function drawPrize() {
   let delay = 90;
 
   for (let n = 0; n < steps; n += 1) {
-    SlotSfx.tick(n / Math.max(steps - 1, 1));
+    if (!spinning) SlotSfx.tick(n / Math.max(steps - 1, 1));
     setCarousel(frontIndex + 1);
     await sleep(delay);
     delay *= 1.12;
   }
 
+  SpinSfx.stop();
   SlotSfx.stopWhir();
   carouselStage.classList.remove("spinning");
   setCarousel(winner);
@@ -336,7 +450,7 @@ async function drawPrize() {
   history.push(prize.name);
   historyEl.textContent = `本場已抽出：${history.join("、")}`;
   await sleep(1400);
-  if (!bgm.paused) bgm.volume = prevBgm;
+  unduckBgm();
   openResult(prize);
   drawing = false;
   drawBtn.disabled = false;
@@ -344,6 +458,8 @@ async function drawPrize() {
 
 function closeModal() {
   modal.hidden = true;
+  SpinSfx.stop();
+  unduckBgm();
   if (PAGES[current] === "draw" && !drawing) startAutoplay();
 }
 
@@ -456,8 +572,12 @@ musicBtn.addEventListener("click", (event) => {
 });
 
 ["pointerdown", "keydown", "touchstart"].forEach((name) => {
-  window.addEventListener(name, tryPlay, { passive: true });
+  window.addEventListener(name, () => {
+    tryPlay();
+    SpinSfx.init();
+  }, { passive: true });
 });
 
 renderMusic();
 tryPlay();
+SpinSfx.init();
