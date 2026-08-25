@@ -275,8 +275,8 @@ const SlotSfx = {
     fanfare.forEach((freq, i) => {
       const when = 0.08 + i * 0.07;
       this.tone({ freq, duration: 0.55, type: "square", volume: 0.16, when, pan: -0.15 });
-      this.tone({ freq * 1.002, duration: 0.55, type: "triangle", volume: 0.14, when, pan: 0.18 });
-      this.tone({ freq * 2, duration: 0.32, type: "sine", volume: 0.08, when });
+      this.tone({ freq: freq * 1.002, duration: 0.55, type: "triangle", volume: 0.14, when, pan: 0.18 });
+      this.tone({ freq: freq * 2, duration: 0.32, type: "sine", volume: 0.08, when });
     });
 
     [523.25, 659.25, 783.99, 1046.5].forEach((freq, i) => {
@@ -358,6 +358,8 @@ document.getElementById("carousel").addEventListener("mouseenter", stopAutoplay)
 document.getElementById("carousel").addEventListener("mouseleave", () => {
   if (PAGES[current] === "draw" && !drawing && modal.hidden) startAutoplay();
 });
+document.getElementById("carousel-prev").addEventListener("click", () => rotateCarousel(-1));
+document.getElementById("carousel-next").addEventListener("click", () => rotateCarousel(1));
 
 prizeCards.forEach((card, i) => {
   card.addEventListener("click", () => {
