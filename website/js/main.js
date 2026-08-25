@@ -215,3 +215,50 @@ const startHash = location.hash.replace("#", "");
 const startIndex = PAGES.indexOf(startHash);
 setCarousel(0);
 go(startIndex >= 0 ? startIndex : 0);
+
+const bgm = document.getElementById("bgm");
+const musicBtn = document.getElementById("btn-music");
+const iconOn = document.getElementById("icon-music-on");
+const iconOff = document.getElementById("icon-music-off");
+bgm.volume = 0.32;
+let musicOn = localStorage.getItem("music") !== "off";
+
+function renderMusic() {
+  musicBtn.classList.toggle("off", !musicOn);
+  musicBtn.setAttribute("aria-pressed", String(musicOn));
+  iconOn.hidden = !musicOn;
+  iconOff.hidden = musicOn;
+}
+
+function tryPlay() {
+  if (!musicOn) return;
+  const play = bgm.play();
+  if (play && typeof play.then === "function") {
+    play.then(() => musicBtn.classList.remove("waiting")).catch(() => {
+      musicBtn.classList.add("waiting");
+    });
+  }
+}
+
+function setMusic(on) {
+  musicOn = on;
+  localStorage.setItem("music", on ? "on" : "off");
+  renderMusic();
+  if (on) tryPlay();
+  else {
+    bgm.pause();
+    musicBtn.classList.remove("waiting");
+  }
+}
+
+musicBtn.addEventListener("click", (event) => {
+  event.stopPropagation();
+  setMusic(!musicOn);
+});
+
+["pointerdown", "keydown", "touchstart"].forEach((name) => {
+  window.addEventListener(name, tryPlay, { passive: true });
+});
+
+renderMusic();
+tryPlay();
