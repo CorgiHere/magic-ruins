@@ -220,7 +220,7 @@ const bgm = document.getElementById("bgm");
 const musicBtn = document.getElementById("btn-music");
 const iconOn = document.getElementById("icon-music-on");
 const iconOff = document.getElementById("icon-music-off");
-bgm.volume = 0.32;
+bgm.volume = 0.9;
 let musicOn = localStorage.getItem("music") !== "off";
 
 function renderMusic() {
