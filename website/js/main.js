@@ -304,7 +304,7 @@ const SlotSfx = {
 };
 
 const SpinSfx = {
-  id: "zfXp4_sge8w",
+  id: "Xa2tDZxnm6w",
   player: null,
   ready: false,
   loading: false,
