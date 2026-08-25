@@ -118,101 +118,188 @@ function openResult(prize) {
 const SlotSfx = {
   ctx: null,
   whir: null,
+  master: null,
 
   ensure() {
     const AC = window.AudioContext || window.webkitAudioContext;
     if (!this.ctx) this.ctx = new AC();
     if (this.ctx.state === "suspended") this.ctx.resume();
+    if (!this.master) {
+      const comp = this.ctx.createDynamicsCompressor();
+      comp.threshold.value = -16;
+      comp.knee.value = 10;
+      comp.ratio.value = 5;
+      comp.attack.value = 0.004;
+      comp.release.value = 0.14;
+      const makeup = this.ctx.createGain();
+      makeup.gain.value = 1.45;
+      comp.connect(makeup).connect(this.ctx.destination);
+      this.master = makeup;
+      this.comp = comp;
+    }
     return this.ctx;
   },
 
-  blip(freq, duration, type, volume, when = 0) {
+  out() {
+    this.ensure();
+    return this.comp;
+  },
+
+  tone({ freq, endFreq, duration, type = "sine", volume = 0.2, when = 0, pan = 0, attack = 0.008 }) {
     const ctx = this.ensure();
     const t = ctx.currentTime + when;
     const osc = ctx.createOscillator();
     const gain = ctx.createGain();
+    const panner = ctx.createStereoPanner();
     osc.type = type;
     osc.frequency.setValueAtTime(freq, t);
-    gain.gain.setValueAtTime(volume, t);
-    gain.gain.exponentialRampToValueAtTime(0.001, t + duration);
-    osc.connect(gain).connect(ctx.destination);
+    if (endFreq) osc.frequency.exponentialRampToValueAtTime(Math.max(endFreq, 20), t + duration);
+    panner.pan.setValueAtTime(pan, t);
+    gain.gain.setValueAtTime(0.0001, t);
+    gain.gain.exponentialRampToValueAtTime(volume, t + attack);
+    gain.gain.exponentialRampToValueAtTime(0.0001, t + duration);
+    osc.connect(gain).connect(panner).connect(this.out());
     osc.start(t);
-    osc.stop(t + duration + 0.02);
+    osc.stop(t + duration + 0.03);
+  },
+
+  noise({ duration = 0.05, volume = 0.2, when = 0, freq = 1600, q = 4, pan = 0 }) {
+    const ctx = this.ensure();
+    const t = ctx.currentTime + when;
+    const n = ctx.createBufferSource();
+    const buf = ctx.createBuffer(1, Math.max(1, Math.floor(ctx.sampleRate * duration)), ctx.sampleRate);
+    const data = buf.getChannelData(0);
+    for (let i = 0; i < data.length; i += 1) data[i] = (Math.random() * 2 - 1) * (1 - i / data.length);
+    n.buffer = buf;
+    const filter = ctx.createBiquadFilter();
+    filter.type = "bandpass";
+    filter.frequency.value = freq;
+    filter.Q.value = q;
+    const gain = ctx.createGain();
+    const panner = ctx.createStereoPanner();
+    panner.pan.setValueAtTime(pan, t);
+    gain.gain.setValueAtTime(volume, t);
+    gain.gain.exponentialRampToValueAtTime(0.0001, t + duration);
+    n.connect(filter).connect(gain).connect(panner).connect(this.out());
+    n.start(t);
   },
 
   lever() {
-    this.blip(140, 0.12, "sawtooth", 0.28);
-    this.blip(90, 0.18, "square", 0.18, 0.05);
+    this.noise({ duration: 0.16, volume: 0.35, freq: 420, q: 1.4 });
+    this.tone({ freq: 90, endFreq: 48, duration: 0.28, type: "sawtooth", volume: 0.34 });
+    this.tone({ freq: 180, endFreq: 70, duration: 0.18, type: "square", volume: 0.16, when: 0.04 });
+    this.tone({ freq: 720, endFreq: 240, duration: 0.12, type: "triangle", volume: 0.14, when: 0.08 });
   },
 
   tick(progress) {
-    const ctx = this.ensure();
-    const t = ctx.currentTime;
-    const pitch = 1400 - progress * 700;
-    this.blip(pitch + Math.random() * 80, 0.05, "square", 0.22);
-
-    const n = ctx.createBufferSource();
-    const buf = ctx.createBuffer(1, Math.floor(ctx.sampleRate * 0.035), ctx.sampleRate);
-    const data = buf.getChannelData(0);
-    for (let i = 0; i < data.length; i += 1) {
-      data[i] = (Math.random() * 2 - 1) * (1 - i / data.length);
+    const pan = (Math.random() * 1.4 - 0.7);
+    const pitch = 1680 - progress * 920;
+    this.tone({
+      freq: pitch + Math.random() * 90,
+      endFreq: pitch * 0.45,
+      duration: 0.07,
+      type: "square",
+      volume: 0.2,
+      pan,
+    });
+    this.tone({
+      freq: pitch * 1.5,
+      endFreq: pitch * 0.8,
+      duration: 0.05,
+      type: "triangle",
+      volume: 0.12,
+      pan: pan * -0.6,
+    });
+    this.noise({ duration: 0.045, volume: 0.32, freq: 1900 - progress * 600, q: 5, pan });
+    if (progress < 0.55) {
+      this.tone({ freq: 2400 + Math.random() * 400, duration: 0.03, type: "sine", volume: 0.08, pan: -pan, when: 0.012 });
     }
-    const filter = ctx.createBiquadFilter();
-    filter.type = "bandpass";
-    filter.frequency.value = 1600;
-    filter.Q.value = 6;
-    const gain = ctx.createGain();
-    gain.gain.setValueAtTime(0.28, t);
-    gain.gain.exponentialRampToValueAtTime(0.001, t + 0.04);
-    n.buffer = buf;
-    n.connect(filter).connect(gain).connect(ctx.destination);
-    n.start(t);
   },
 
   startWhir() {
     const ctx = this.ensure();
     this.stopWhir();
-    const n = ctx.createBufferSource();
-    const buf = ctx.createBuffer(1, ctx.sampleRate, ctx.sampleRate);
-    const data = buf.getChannelData(0);
-    for (let i = 0; i < data.length; i += 1) data[i] = Math.random() * 2 - 1;
-    n.buffer = buf;
-    n.loop = true;
-    const filter = ctx.createBiquadFilter();
-    filter.type = "bandpass";
-    filter.frequency.value = 780;
-    filter.Q.value = 5;
-    const lfo = ctx.createOscillator();
-    const lfoGain = ctx.createGain();
-    lfo.frequency.value = 14;
-    lfoGain.gain.value = 180;
-    lfo.connect(lfoGain).connect(filter.frequency);
-    const gain = ctx.createGain();
-    gain.gain.value = 0.16;
-    n.connect(filter).connect(gain).connect(ctx.destination);
-    n.start();
-    lfo.start();
-    this.whir = { n, gain, lfo };
+    const makeNoise = (freq, q, vol, rate) => {
+      const n = ctx.createBufferSource();
+      const buf = ctx.createBuffer(1, ctx.sampleRate, ctx.sampleRate);
+      const data = buf.getChannelData(0);
+      for (let i = 0; i < data.length; i += 1) data[i] = Math.random() * 2 - 1;
+      n.buffer = buf;
+      n.loop = true;
+      const filter = ctx.createBiquadFilter();
+      filter.type = "bandpass";
+      filter.frequency.value = freq;
+      filter.Q.value = q;
+      const lfo = ctx.createOscillator();
+      const lfoGain = ctx.createGain();
+      lfo.frequency.value = rate;
+      lfoGain.gain.value = freq * 0.22;
+      lfo.connect(lfoGain).connect(filter.frequency);
+      const gain = ctx.createGain();
+      gain.gain.value = vol;
+      n.connect(filter).connect(gain).connect(this.out());
+      n.start();
+      lfo.start();
+      return { n, lfo, gain };
+    };
+    const motor = ctx.createOscillator();
+    const motorGain = ctx.createGain();
+    motor.type = "sawtooth";
+    motor.frequency.value = 62;
+    motorGain.gain.value = 0.08;
+    motor.connect(motorGain).connect(this.out());
+    motor.start();
+    this.whir = [
+      makeNoise(620, 3.2, 0.12, 11),
+      makeNoise(1250, 6, 0.09, 17),
+      { n: motor, lfo: motor, gain: motorGain },
+    ];
   },
 
   stopWhir() {
     if (!this.whir || !this.ctx) return;
     const t = this.ctx.currentTime;
-    this.whir.gain.gain.exponentialRampToValueAtTime(0.001, t + 0.12);
-    this.whir.n.stop(t + 0.14);
-    this.whir.lfo.stop(t + 0.14);
+    this.whir.forEach((node) => {
+      node.gain.gain.exponentialRampToValueAtTime(0.0001, t + 0.18);
+      try { node.n.stop(t + 0.2); } catch (err) { /* already stopped */ }
+      try { node.lfo.stop(t + 0.2); } catch (err) { /* already stopped */ }
+    });
     this.whir = null;
   },
 
   jackpot() {
-    const notes = [523.25, 659.25, 783.99, 1046.5, 1318.51];
-    notes.forEach((freq, i) => {
-      this.blip(freq, 0.45, "square", 0.2, i * 0.08);
-      this.blip(freq * 2, 0.28, "triangle", 0.1, i * 0.08);
+    this.tone({ freq: 140, endFreq: 420, duration: 0.35, type: "sawtooth", volume: 0.18 });
+    this.noise({ duration: 0.28, volume: 0.22, freq: 900, q: 1.2 });
+
+    const fanfare = [523.25, 659.25, 783.99, 1046.5, 1318.51, 1567.98, 2093];
+    fanfare.forEach((freq, i) => {
+      const when = 0.08 + i * 0.07;
+      this.tone({ freq, duration: 0.55, type: "square", volume: 0.16, when, pan: -0.15 });
+      this.tone({ freq * 1.002, duration: 0.55, type: "triangle", volume: 0.14, when, pan: 0.18 });
+      this.tone({ freq * 2, duration: 0.32, type: "sine", volume: 0.08, when });
     });
-    for (let i = 0; i < 10; i += 1) {
-      this.blip(1800 + Math.random() * 1200, 0.12, "sine", 0.16, 0.28 + i * 0.06);
+
+    [523.25, 659.25, 783.99, 1046.5].forEach((freq, i) => {
+      this.tone({ freq, duration: 0.9, type: "triangle", volume: 0.12, when: 0.55 + i * 0.05, pan: i % 2 ? 0.25 : -0.25 });
+    });
+
+    for (let i = 0; i < 18; i += 1) {
+      const pan = (i % 2 === 0 ? -1 : 1) * (0.25 + Math.random() * 0.7);
+      this.tone({
+        freq: 1600 + Math.random() * 1800,
+        endFreq: 900 + Math.random() * 500,
+        duration: 0.16,
+        type: "sine",
+        volume: 0.14,
+        when: 0.35 + i * 0.055,
+        pan,
+      });
+      this.noise({ duration: 0.04, volume: 0.12, freq: 3200, q: 8, when: 0.36 + i * 0.055, pan });
     }
+
+    this.tone({ freq: 1046.5, duration: 1.1, type: "triangle", volume: 0.16, when: 0.95 });
+    this.tone({ freq: 1318.51, duration: 1.1, type: "sine", volume: 0.12, when: 0.98, pan: 0.3 });
+    this.tone({ freq: 1567.98, duration: 1.2, type: "triangle", volume: 0.1, when: 1.02, pan: -0.3 });
   },
 };
 
@@ -248,7 +335,7 @@ async function drawPrize() {
   const prize = PRIZES[winner];
   history.push(prize.name);
   historyEl.textContent = `本場已抽出：${history.join("、")}`;
-  await sleep(520);
+  await sleep(1400);
   if (!bgm.paused) bgm.volume = prevBgm;
   openResult(prize);
   drawing = false;
