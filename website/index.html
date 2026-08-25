@@ -1,0 +1,167 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>魔法廢墟 爭霸賽｜遊戲規則</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;500;700;900&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="css/style.css" />
+</head>
+<body>
+  <div class="sky" aria-hidden="true"></div>
+  <div class="vignette" aria-hidden="true"></div>
+  <div class="stars" aria-hidden="true"></div>
+
+  <header class="topbar">
+    <button class="brand" data-go="home" type="button">魔法廢墟</button>
+    <p class="page-indicator"><span id="page-index">01</span> / 07　<span id="page-name">封面</span></p>
+  </header>
+
+  <button class="nav-arrow prev" id="btn-prev" type="button" aria-label="上一頁">
+    <svg viewBox="0 0 24 24" width="28" height="28" fill="none" stroke="currentColor" stroke-width="2.4"><path d="M15 5l-7 7 7 7"/></svg>
+  </button>
+  <button class="nav-arrow next" id="btn-next" type="button" aria-label="下一頁">
+    <svg viewBox="0 0 24 24" width="28" height="28" fill="none" stroke="currentColor" stroke-width="2.4"><path d="M9 5l7 7-7 7"/></svg>
+  </button>
+
+  <main id="stage">
+    <section class="page active" id="page-home" data-name="封面">
+      <div class="hero">
+        <h1 class="neon-title hero-title">魔法廢墟</h1>
+        <div class="hex-chip cyan">爭霸賽</div>
+        <p class="hero-sub">遊戲規則說明　·　犯規抽道具</p>
+        <button class="cta" data-go="howto" type="button">查看規則</button>
+      </div>
+    </section>
+
+    <section class="page" id="page-howto" data-name="玩法說明" hidden>
+      <h2 class="neon-title">玩法說明</h2>
+      <div class="split">
+        <ul class="story-list">
+          <li>根據下圖站位置</li>
+          <li>木棍上會有可套手的繩子</li>
+          <li>切記不可將繩子弄斷，<br />若弄斷則計犯規一次</li>
+          <li class="emphasis">發揮默契　讓棍子成為堅強盾牌</li>
+        </ul>
+        <div class="diagram-card">
+          <img class="diagram-img" src="assets/diagram.png" alt="站位示意：A B A B，外側各 3 個套手點、內側各 4 個套手點" />
+        </div>
+      </div>
+    </section>
+
+    <section class="page" id="page-rules" data-name="遊玩規則" hidden>
+      <h2 class="neon-title">遊玩規則</h2>
+      <ol class="rules-list">
+        <li>僅用足部踢球 <span class="foul">*1</span></li>
+        <li>不可超出前後的線 <span class="foul">*1</span></li>
+        <li>不可將球擊至膝蓋以上 <span class="foul">*1</span></li>
+        <li>若爆頭對方 <span class="foul">*2</span></li>
+        <li>若守門員逾 3 秒未開始，球權交換</li>
+        <li>累計 5 次犯規，對方可抽道具</li>
+      </ol>
+      <button class="cta ghost" data-go="draw" type="button">累計 5 次犯規 → 抽道具</button>
+    </section>
+
+    <section class="page" id="page-items" data-name="道具" hidden>
+      <h2 class="neon-title">道具</h2>
+      <div class="items-grid">
+        <article class="item-card" data-preview="finale">
+          <img src="assets/items/art-finale.png" alt="華麗謝幕" />
+          <h3>華麗謝幕</h3>
+          <p>受狙擊槍瞄準，現在不可以動 15 秒</p>
+        </article>
+        <article class="item-card" data-preview="palm">
+          <img src="assets/items/art-palm.png" alt="黃金神掌" />
+          <h3>黃金神掌</h3>
+          <p>守門員獲得超大手套，持續 1 MIN</p>
+        </article>
+        <article class="item-card wide" data-preview="headband">
+          <img src="assets/items/art-headband.png" alt="四萬年前的髮箍" />
+          <h3>四萬年前的髮箍</h3>
+          <p>服裝加 0 分，恭喜你變得更好看了</p>
+        </article>
+      </div>
+      <button class="cta" data-go="draw" type="button">前往抽獎</button>
+    </section>
+
+    <section class="page" id="page-draw" data-name="抽道具" hidden>
+      <h2 class="neon-title">抽道具</h2>
+      <p class="lead">累計 5 次犯規後，對方可抽取一項道具</p>
+      <div class="draw-stage">
+        <div class="carousel" id="carousel">
+          <button class="carousel-btn prev" id="carousel-prev" type="button" aria-label="向左旋轉">
+            <svg viewBox="0 0 24 24" width="26" height="26" fill="none" stroke="currentColor" stroke-width="2.6"><path d="M15 5l-7 7 7 7"/></svg>
+          </button>
+          <div class="carousel-stage" id="carousel-stage">
+            <button class="carousel-card" data-prize="0" type="button">
+              <img src="assets/items/art-finale.png" alt="華麗謝幕" />
+              <span>華麗謝幕</span>
+            </button>
+            <button class="carousel-card" data-prize="1" type="button">
+              <img src="assets/items/art-palm.png" alt="黃金神掌" />
+              <span>黃金神掌</span>
+            </button>
+            <button class="carousel-card" data-prize="2" type="button">
+              <img src="assets/items/art-headband.png" alt="四萬年前的髮箍" />
+              <span>四萬年前的髮箍</span>
+            </button>
+          </div>
+          <button class="carousel-btn next" id="carousel-next" type="button" aria-label="向右旋轉">
+            <svg viewBox="0 0 24 24" width="26" height="26" fill="none" stroke="currentColor" stroke-width="2.6"><path d="M9 5l7 7-7 7"/></svg>
+          </button>
+        </div>
+        <button class="arcade-btn" id="btn-draw" type="button">
+          <span class="arcade-ring"></span>
+          <span class="arcade-core">抽</span>
+        </button>
+        <p class="arcade-caption">按下按鈕開始抽獎</p>
+      </div>
+      <p class="history" id="draw-history">尚未抽獎</p>
+    </section>
+
+    <section class="page" id="page-victory" data-name="勝利條件" hidden>
+      <h2 class="neon-title">勝利條件</h2>
+      <div class="victory-row">
+        <div class="hex-chip mag">分數較高者</div>
+        <div class="hex-chip mag">點球先進球者</div>
+      </div>
+    </section>
+
+    <section class="page" id="page-start" data-name="遊戲開始" hidden>
+      <div class="hero">
+        <h2 class="neon-title hero-title start-title">遊戲開始</h2>
+        <p class="hero-sub">祝各位比賽順利　發揮默契　全力以赴</p>
+        <button class="cta ghost" data-go="home" type="button">回到封面</button>
+      </div>
+    </section>
+  </main>
+
+  <nav class="dock" aria-label="頁面導覽">
+    <button data-go="home" type="button">封面</button>
+    <button data-go="howto" type="button">玩法</button>
+    <button data-go="rules" type="button">規則</button>
+    <button data-go="items" type="button">道具</button>
+    <button data-go="draw" type="button">抽獎</button>
+    <button data-go="victory" type="button">勝利</button>
+    <button data-go="start" type="button">開始</button>
+  </nav>
+
+  <div class="modal" id="result-modal" hidden>
+    <div class="modal-backdrop" data-close-modal></div>
+    <div class="modal-panel" role="dialog" aria-modal="true" aria-labelledby="result-title">
+      <p class="result-kicker">抽中道具</p>
+      <h3 class="neon-title" id="result-title"></h3>
+      <img id="result-art" alt="" />
+      <p class="result-desc" id="result-desc"></p>
+      <div class="modal-actions">
+        <button class="cta" id="btn-redraw" type="button">再抽一次</button>
+        <button class="cta ghost" data-close-modal type="button">關閉</button>
+      </div>
+    </div>
+  </div>
+
+  <script src="js/main.js"></script>
+</body>
+</html>
