@@ -115,10 +115,106 @@ function openResult(prize) {
   stopAutoplay();
 }
 
-function closeModal() {
-  modal.hidden = true;
-  if (PAGES[current] === "draw" && !drawing) startAutoplay();
-}
+const SlotSfx = {
+  ctx: null,
+  whir: null,
+
+  ensure() {
+    const AC = window.AudioContext || window.webkitAudioContext;
+    if (!this.ctx) this.ctx = new AC();
+    if (this.ctx.state === "suspended") this.ctx.resume();
+    return this.ctx;
+  },
+
+  blip(freq, duration, type, volume, when = 0) {
+    const ctx = this.ensure();
+    const t = ctx.currentTime + when;
+    const osc = ctx.createOscillator();
+    const gain = ctx.createGain();
+    osc.type = type;
+    osc.frequency.setValueAtTime(freq, t);
+    gain.gain.setValueAtTime(volume, t);
+    gain.gain.exponentialRampToValueAtTime(0.001, t + duration);
+    osc.connect(gain).connect(ctx.destination);
+    osc.start(t);
+    osc.stop(t + duration + 0.02);
+  },
+
+  lever() {
+    this.blip(140, 0.12, "sawtooth", 0.28);
+    this.blip(90, 0.18, "square", 0.18, 0.05);
+  },
+
+  tick(progress) {
+    const ctx = this.ensure();
+    const t = ctx.currentTime;
+    const pitch = 1400 - progress * 700;
+    this.blip(pitch + Math.random() * 80, 0.05, "square", 0.22);
+
+    const n = ctx.createBufferSource();
+    const buf = ctx.createBuffer(1, Math.floor(ctx.sampleRate * 0.035), ctx.sampleRate);
+    const data = buf.getChannelData(0);
+    for (let i = 0; i < data.length; i += 1) {
+      data[i] = (Math.random() * 2 - 1) * (1 - i / data.length);
+    }
+    const filter = ctx.createBiquadFilter();
+    filter.type = "bandpass";
+    filter.frequency.value = 1600;
+    filter.Q.value = 6;
+    const gain = ctx.createGain();
+    gain.gain.setValueAtTime(0.28, t);
+    gain.gain.exponentialRampToValueAtTime(0.001, t + 0.04);
+    n.buffer = buf;
+    n.connect(filter).connect(gain).connect(ctx.destination);
+    n.start(t);
+  },
+
+  startWhir() {
+    const ctx = this.ensure();
+    this.stopWhir();
+    const n = ctx.createBufferSource();
+    const buf = ctx.createBuffer(1, ctx.sampleRate, ctx.sampleRate);
+    const data = buf.getChannelData(0);
+    for (let i = 0; i < data.length; i += 1) data[i] = Math.random() * 2 - 1;
+    n.buffer = buf;
+    n.loop = true;
+    const filter = ctx.createBiquadFilter();
+    filter.type = "bandpass";
+    filter.frequency.value = 780;
+    filter.Q.value = 5;
+    const lfo = ctx.createOscillator();
+    const lfoGain = ctx.createGain();
+    lfo.frequency.value = 14;
+    lfoGain.gain.value = 180;
+    lfo.connect(lfoGain).connect(filter.frequency);
+    const gain = ctx.createGain();
+    gain.gain.value = 0.16;
+    n.connect(filter).connect(gain).connect(ctx.destination);
+    n.start();
+    lfo.start();
+    this.whir = { n, gain, lfo };
+  },
+
+  stopWhir() {
+    if (!this.whir || !this.ctx) return;
+    const t = this.ctx.currentTime;
+    this.whir.gain.gain.exponentialRampToValueAtTime(0.001, t + 0.12);
+    this.whir.n.stop(t + 0.14);
+    this.whir.lfo.stop(t + 0.14);
+    this.whir = null;
+  },
+
+  jackpot() {
+    const notes = [523.25, 659.25, 783.99, 1046.5, 1318.51];
+    notes.forEach((freq, i) => {
+      this.blip(freq, 0.45, "square", 0.2, i * 0.08);
+      this.blip(freq * 2, 0.28, "triangle", 0.1, i * 0.08);
+    });
+    for (let i = 0; i < 10; i += 1) {
+      this.blip(1800 + Math.random() * 1200, 0.12, "sine", 0.16, 0.28 + i * 0.06);
+    }
+  },
+};
 
 async function drawPrize() {
   if (drawing) return;
@@ -127,6 +223,11 @@ async function drawPrize() {
   closeModal();
   stopAutoplay();
   carouselStage.classList.add("spinning");
+  SlotSfx.ensure();
+  SlotSfx.lever();
+  SlotSfx.startWhir();
+  const prevBgm = bgm.volume;
+  if (!bgm.paused) bgm.volume = Math.min(prevBgm, 0.28);
 
   const winner = Math.floor(Math.random() * TOTAL);
   const extra = (winner - frontIndex + TOTAL) % TOTAL;
@@ -134,20 +235,29 @@ async function drawPrize() {
   let delay = 90;
 
   for (let n = 0; n < steps; n += 1) {
+    SlotSfx.tick(n / Math.max(steps - 1, 1));
     setCarousel(frontIndex + 1);
     await sleep(delay);
     delay *= 1.12;
   }
 
+  SlotSfx.stopWhir();
   carouselStage.classList.remove("spinning");
   setCarousel(winner);
+  SlotSfx.jackpot();
   const prize = PRIZES[winner];
   history.push(prize.name);
   historyEl.textContent = `本場已抽出：${history.join("、")}`;
-  await sleep(420);
+  await sleep(520);
+  if (!bgm.paused) bgm.volume = prevBgm;
   openResult(prize);
   drawing = false;
   drawBtn.disabled = false;
+}
+
+function closeModal() {
+  modal.hidden = true;
+  if (PAGES[current] === "draw" && !drawing) startAutoplay();
 }
 
 document.querySelectorAll("[data-go]").forEach((el) => {
