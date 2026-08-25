@@ -155,6 +155,13 @@
 
   <audio id="bgm" src="assets/audio/bgm.mp3" loop preload="auto"></audio>
   <div id="yt-spin" class="yt-spin" aria-hidden="true"></div>
+  <script>
+    window.onYouTubeIframeAPIReady = function () {
+      window.__ytApiReady = true;
+      if (typeof window.__onYtReady === "function") window.__onYtReady();
+    };
+  </script>
+  <script src="https://www.youtube.com/iframe_api"></script>
 
   <nav class="dock" aria-label="頁面導覽">
     <button data-go="home" type="button">封面</button>
@@ -180,6 +187,6 @@
     </div>
   </div>
 
-  <script src="js/main.js?v=20260825c"></script>
+  <script src="js/main.js?v=20260825d"></script>
 </body>
 </html>

@@ -309,15 +309,17 @@ const SpinSfx = {
   ready: false,
   loading: false,
   looping: false,
+  pending: false,
 
   init() {
-    if (this.player || this.loading) return;
-    this.loading = true;
-    window.onYouTubeIframeAPIReady = () => this.create();
+    window.__onYtReady = () => this.create();
     if (window.YT && window.YT.Player) {
       this.create();
       return;
     }
+    if (this.loading) return;
+    this.loading = true;
+    if (document.querySelector('script[src*="iframe_api"]')) return;
     const tag = document.createElement("script");
     tag.src = "https://www.youtube.com/iframe_api";
     tag.onerror = () => {
@@ -348,9 +350,18 @@ const SpinSfx = {
         onReady: () => {
           this.ready = true;
           this.player.setVolume(100);
+          if (this.pending || this.looping) this.play();
+          else this.warm();
         },
         onStateChange: (event) => {
-          if (this.looping && event.data === window.YT.PlayerState.ENDED) {
+          const state = event.data;
+          if (state === window.YT.PlayerState.PLAYING && !this.looping) {
+            this.player.pauseVideo();
+            this.player.seekTo(0, true);
+            this.player.unMute();
+            return;
+          }
+          if (this.looping && state === window.YT.PlayerState.ENDED) {
             this.player.seekTo(0, true);
             this.player.playVideo();
           }
@@ -362,33 +373,36 @@ const SpinSfx = {
     });
   },
 
-  async waitReady(ms = 1200) {
-    this.init();
-    const start = Date.now();
-    while (!this.ready && Date.now() - start < ms) {
-      await sleep(80);
+  warm() {
+    if (!this.ready || this.looping) return;
+    try {
+      this.player.mute();
+      this.player.playVideo();
+    } catch (err) {
+      /* ignore */
     }
-    return this.ready;
   },
 
   play() {
+    this.pending = true;
+    this.looping = true;
     this.init();
     if (!this.ready || !this.player || typeof this.player.playVideo !== "function") return false;
-    this.looping = true;
     try {
       this.player.unMute();
       this.player.setVolume(100);
-      this.player.seekTo(0, true);
       this.player.playVideo();
+      this.pending = false;
+      SlotSfx.stopWhir();
+      return true;
     } catch (err) {
-      this.looping = false;
       return false;
     }
-    return true;
   },
 
   stop() {
     this.looping = false;
+    this.pending = false;
     if (this.player && typeof this.player.pauseVideo === "function") {
       try {
         this.player.pauseVideo();
@@ -417,17 +431,16 @@ async function drawPrize() {
   if (drawing) return;
   drawing = true;
   drawBtn.disabled = true;
-  closeModal();
-  stopAutoplay();
-  carouselStage.classList.add("spinning");
-  SlotSfx.ensure();
   duckBgm();
-  await SpinSfx.waitReady();
+  SlotSfx.ensure();
   const spinning = SpinSfx.play();
   if (!spinning) {
     SlotSfx.lever();
     SlotSfx.startWhir();
   }
+  modal.hidden = true;
+  stopAutoplay();
+  carouselStage.classList.add("spinning");
 
   const winner = Math.floor(Math.random() * TOTAL);
   const extra = (winner - frontIndex + TOTAL) % TOTAL;
@@ -435,7 +448,7 @@ async function drawPrize() {
   let delay = 90;
 
   for (let n = 0; n < steps; n += 1) {
-    if (!spinning) SlotSfx.tick(n / Math.max(steps - 1, 1));
+    if (!spinning && !SpinSfx.looping) SlotSfx.tick(n / Math.max(steps - 1, 1));
     setCarousel(frontIndex + 1);
     await sleep(delay);
     delay *= 1.12;
@@ -503,11 +516,15 @@ document.addEventListener("keydown", (event) => {
   if (event.key === "ArrowRight") go(current + 1);
 });
 
-drawBtn.addEventListener("click", drawPrize);
-document.getElementById("btn-redraw").addEventListener("click", () => {
-  closeModal();
+function startDraw(event) {
+  if (event && event.button && event.button !== 0) return;
   drawPrize();
-});
+}
+
+drawBtn.addEventListener("pointerdown", startDraw);
+drawBtn.addEventListener("click", startDraw);
+document.getElementById("btn-redraw").addEventListener("pointerdown", startDraw);
+document.getElementById("btn-redraw").addEventListener("click", startDraw);
 
 document.querySelectorAll("[data-close-modal]").forEach((el) => {
   el.addEventListener("click", closeModal);
@@ -575,6 +592,7 @@ musicBtn.addEventListener("click", (event) => {
   window.addEventListener(name, () => {
     tryPlay();
     SpinSfx.init();
+    SpinSfx.warm();
   }, { passive: true });
 });
 
