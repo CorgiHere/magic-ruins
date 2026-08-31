@@ -327,6 +327,17 @@ button { font-family: inherit; cursor: pointer; }
   object-fit: contain;
 }
 
+.diagram-card:has(.kick-img) {
+  flex: 1 1 460px;
+  max-width: 560px;
+  padding: 6px;
+}
+
+.kick-img {
+  max-height: 420px;
+  border-radius: 12px;
+}
+
 .rules-list {
   list-style: none;
   display: grid;
