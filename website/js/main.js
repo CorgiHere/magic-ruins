@@ -1,4 +1,4 @@
-const PAGES = ["home", "howto", "rules", "items", "draw", "victory", "start"];
+const PAGES = ["home", "howto", "rules", "notes", "items", "draw", "victory", "start"];
 
 const PRIZES = [
   {
@@ -27,6 +27,7 @@ const PRIZES = [
 const pageEls = PAGES.map((id) => document.getElementById(`page-${id}`));
 const dockBtns = [...document.querySelectorAll(".dock button")];
 const pageIndexEl = document.getElementById("page-index");
+const pageTotalEl = document.getElementById("page-total");
 const pageNameEl = document.getElementById("page-name");
 const prevBtn = document.getElementById("btn-prev");
 const nextBtn = document.getElementById("btn-next");
@@ -93,6 +94,7 @@ function go(idOrIndex) {
   pageEls[current].hidden = false;
   pageEls[current].classList.add("active");
   pageIndexEl.textContent = String(current + 1).padStart(2, "0");
+  if (pageTotalEl) pageTotalEl.textContent = String(PAGES.length).padStart(2, "0");
   pageNameEl.textContent = pageEls[current].dataset.name;
   prevBtn.disabled = current === 0;
   nextBtn.disabled = current === PAGES.length - 1;

@@ -94,9 +94,14 @@ button { font-family: inherit; cursor: pointer; }
 }
 
 .page-indicator {
-  font-size: 0.82rem;
+  font-size: 0.9rem;
   letter-spacing: 0.12em;
-  color: rgba(255, 255, 255, 0.78);
+  color: #fff;
+  font-weight: 800;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.75);
+  background: rgba(8, 0, 18, 0.55);
+  padding: 0.35rem 0.8rem;
+  border-radius: 999px;
 }
 
 .nav-arrow {
@@ -188,11 +193,12 @@ button { font-family: inherit; cursor: pointer; }
   letter-spacing: 0.18em;
   text-align: center;
   color: #fff;
+  -webkit-text-stroke: 0.6px rgba(80, 0, 90, 0.55);
   text-shadow:
-    0 0 8px #fff,
-    0 0 16px var(--pink-soft),
-    0 0 32px var(--pink),
-    0 0 64px #c40088;
+    0 2px 0 #3a0050,
+    0 0 6px #fff,
+    0 0 14px var(--pink-soft),
+    0 0 28px var(--pink);
   animation: neonPulse 2.8s ease-in-out infinite;
 }
 
@@ -201,10 +207,10 @@ button { font-family: inherit; cursor: pointer; }
 
 @keyframes neonPulse {
   0%, 100% {
-    text-shadow: 0 0 8px #fff, 0 0 16px var(--pink-soft), 0 0 32px var(--pink), 0 0 64px #c40088;
+    text-shadow: 0 2px 0 #3a0050, 0 0 6px #fff, 0 0 14px var(--pink-soft), 0 0 28px var(--pink);
   }
   50% {
-    text-shadow: 0 0 12px #fff, 0 0 28px #ff9aec, 0 0 54px var(--pink), 0 0 90px #ff00aa;
+    text-shadow: 0 2px 0 #3a0050, 0 0 8px #fff, 0 0 18px #ff9aec, 0 0 36px var(--pink);
   }
 }
 
@@ -216,9 +222,14 @@ button { font-family: inherit; cursor: pointer; }
 }
 
 .hero-sub {
-  letter-spacing: 0.22em;
-  color: rgba(255, 255, 255, 0.86);
-  font-weight: 700;
+  letter-spacing: 0.18em;
+  color: #fff;
+  font-weight: 800;
+  text-align: center;
+  background: rgba(8, 0, 18, 0.62);
+  padding: 0.55rem 1.2rem;
+  border-radius: 999px;
+  box-shadow: 0 0 0 1px rgba(255, 255, 255, 0.22);
 }
 
 .hex-chip {
@@ -271,16 +282,25 @@ button { font-family: inherit; cursor: pointer; }
   justify-content: center;
 }
 
+.text-panel {
+  background: rgba(8, 0, 20, 0.78);
+  border: 1px solid rgba(255, 255, 255, 0.28);
+  border-radius: 18px;
+  padding: 18px 22px;
+  box-shadow: 0 10px 28px rgba(0, 0, 0, 0.35);
+}
+
 .story-list {
   list-style: none;
   display: grid;
-  gap: 12px;
+  gap: 10px;
   flex: 0 1 auto;
-  max-width: 22rem;
-  font-size: clamp(1.05rem, 2.2vw, 1.4rem);
-  font-weight: 700;
+  max-width: 26rem;
+  font-size: clamp(1.02rem, 2vw, 1.28rem);
+  font-weight: 800;
   line-height: 1.55;
-  text-shadow: 0 2px 0 #3b0058, 0 0 12px rgba(255, 255, 255, 0.35);
+  color: #fff;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.8);
 }
 
 .story-list .emphasis {
@@ -310,16 +330,23 @@ button { font-family: inherit; cursor: pointer; }
 .rules-list {
   list-style: none;
   display: grid;
-  gap: 12px;
-  font-size: clamp(1.05rem, 2.2vw, 1.45rem);
-  font-weight: 700;
+  gap: 10px;
+  font-size: clamp(1.05rem, 2.2vw, 1.38rem);
+  font-weight: 800;
   text-align: left;
   width: min(720px, 100%);
+  color: #fff;
 }
 
 .rules-list li {
   padding-left: 0.2em;
-  text-shadow: 0 2px 10px rgba(0, 0, 0, 0.45);
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.8);
+}
+
+.warn {
+  color: #ff4d4d;
+  font-weight: 900;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.7);
 }
 
 .foul {
@@ -329,9 +356,13 @@ button { font-family: inherit; cursor: pointer; }
 }
 
 .lead {
-  letter-spacing: 0.12em;
-  color: rgba(255, 255, 255, 0.86);
-  font-weight: 700;
+  letter-spacing: 0.1em;
+  color: #fff;
+  font-weight: 800;
+  background: rgba(8, 0, 18, 0.62);
+  padding: 0.45rem 1rem;
+  border-radius: 999px;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.75);
 }
 
 .items-grid {
@@ -356,8 +387,8 @@ button { font-family: inherit; cursor: pointer; }
 .item-card:hover { transform: translateY(-6px); }
 .item-card.wide { grid-column: 1 / -1; max-width: 420px; justify-self: center; width: 100%; }
 .item-card img { width: 100%; height: 150px; object-fit: cover; display: block; }
-.item-card h3 { padding: 10px 12px 4px; font-size: 1.15rem; letter-spacing: 0.08em; }
-.item-card p { padding: 0 14px 14px; color: #4a2a62; font-size: 0.92rem; font-weight: 700; }
+.item-card h3 { padding: 10px 12px 4px; font-size: 1.2rem; letter-spacing: 0.08em; color: #4a0878; }
+.item-card p { padding: 0 14px 14px; color: #2a1040; font-size: 0.95rem; font-weight: 800; }
 
 #page-draw {
   gap: 10px;
@@ -511,9 +542,10 @@ button { font-family: inherit; cursor: pointer; }
 
 .arcade-caption,
 .history {
-  font-weight: 700;
-  letter-spacing: 0.1em;
-  color: rgba(255, 255, 255, 0.82);
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  color: #fff;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.75);
 }
 
 .victory-row {
@@ -541,7 +573,7 @@ button { font-family: inherit; cursor: pointer; }
 .dock button {
   border: 0;
   background: transparent;
-  color: rgba(255, 255, 255, 0.72);
+  color: #fff;
   font-weight: 900;
   letter-spacing: 0.08em;
   padding: 0.55rem 0.85rem;
@@ -601,9 +633,11 @@ button { font-family: inherit; cursor: pointer; }
 }
 
 .result-desc {
-  font-size: 1.15rem;
+  font-size: 1.2rem;
   font-weight: 800;
   text-align: center;
+  color: #fff;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.75);
 }
 
 .modal-actions { display: flex; gap: 12px; flex-wrap: wrap; justify-content: center; }
