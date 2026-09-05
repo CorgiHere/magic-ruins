@@ -1,10 +1,10 @@
-const PAGES = ["home", "howto", "rules", "notes", "items", "draw", "victory", "start"];
+const PAGES = ["home", "howto", "notes", "rules", "items", "draw", "victory", "prize", "reminder", "start"];
 
 const PRIZES = [
   {
     id: "finale",
     name: "華麗謝幕",
-    desc: "受狙擊槍瞄準，現在不可以動 15 秒",
+    desc: "受狙擊槍瞄準，現在不可以動 10 秒",
     art: "assets/items/art-finale.png",
     full: "assets/items/item-finale.png",
   },
@@ -18,7 +18,7 @@ const PRIZES = [
   {
     id: "headband",
     name: "四萬年前的髮箍",
-    desc: "服裝加 0 分，恭喜你變得更好看了",
+    desc: "服裝加分，恭喜你變得更好看了",
     art: "assets/items/art-headband.png",
     full: "assets/items/item-headband.png",
   },

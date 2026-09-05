@@ -327,15 +327,44 @@ button { font-family: inherit; cursor: pointer; }
   object-fit: contain;
 }
 
-.diagram-card:has(.kick-img) {
-  flex: 1 1 460px;
-  max-width: 560px;
+.notes-split {
+  width: min(1100px, 100%);
+  align-items: center;
+}
+
+.diagram-card:has(.kick-img),
+.kick-card {
+  flex: 1 1 520px;
+  max-width: 640px;
   padding: 6px;
 }
 
 .kick-img {
-  max-height: 420px;
+  max-height: min(58vh, 520px);
+  width: 100%;
   border-radius: 12px;
+}
+
+.notes-extra {
+  max-width: 22rem;
+  gap: 16px;
+  font-size: clamp(1.2rem, 2.5vw, 1.55rem);
+  line-height: 1.6;
+}
+
+#page-notes {
+  gap: 18px;
+  padding-top: 88px;
+}
+
+#page-notes .neon-title {
+  font-size: clamp(2rem, 4.6vw, 3.2rem);
+}
+
+.ok {
+  color: #7dff8a;
+  font-weight: 900;
+  text-shadow: 0 0 10px rgba(125, 255, 138, 0.55);
 }
 
 .rules-list {
@@ -402,17 +431,23 @@ button { font-family: inherit; cursor: pointer; }
 .item-card p { padding: 0 14px 14px; color: #2a1040; font-size: 0.95rem; font-weight: 800; }
 
 #page-draw {
-  gap: 10px;
-  padding-top: 78px;
+  gap: 8px;
+  padding-top: 72px;
   overflow: visible;
 }
 
 #page-draw .neon-title {
-  font-size: clamp(2rem, 4.6vw, 3.2rem);
+  font-size: clamp(1.8rem, 4vw, 2.8rem);
 }
 
-#page-draw .lead {
-  margin-bottom: 2px;
+.draw-lead {
+  position: relative;
+  z-index: 30;
+  margin-bottom: 0;
+  font-size: clamp(1.25rem, 3vw, 1.85rem);
+  font-weight: 900;
+  letter-spacing: 0.08em;
+  padding: 0.7rem 1.4rem;
 }
 
 .draw-stage {
@@ -566,6 +601,68 @@ button { font-family: inherit; cursor: pointer; }
   justify-content: center;
 }
 
+.prize-board {
+  width: min(640px, 100%);
+  display: grid;
+  justify-items: center;
+  gap: 22px;
+  padding: 28px 36px;
+}
+
+.prize-row {
+  display: grid;
+  grid-template-columns: 6.5rem auto;
+  align-items: baseline;
+  justify-content: center;
+  column-gap: 1.4rem;
+  font-weight: 900;
+  font-size: clamp(1.55rem, 3.6vw, 2.35rem);
+  letter-spacing: 0.1em;
+}
+
+.prize-label {
+  font-family: inherit;
+  letter-spacing: 0.16em;
+}
+
+.prize-label.win { color: var(--cyan); text-shadow: 0 0 12px var(--cyan); }
+.prize-label.lose { color: var(--pink-soft); text-shadow: 0 0 12px var(--pink); }
+.prize-label.draw { color: var(--lime); text-shadow: 0 0 12px var(--lime); }
+
+.prize-amount {
+  color: #fff;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.8);
+}
+
+.reminder-hero {
+  gap: 18px;
+}
+
+.reminder-photo {
+  width: min(520px, 72vw);
+  height: auto;
+  max-height: min(38vh, 340px);
+  object-fit: cover;
+  border-radius: 18px;
+  box-shadow: 0 12px 32px rgba(0, 0, 0, 0.4), 0 0 0 2px rgba(255, 255, 255, 0.22);
+}
+
+.reminder-text {
+  max-width: none;
+  white-space: nowrap;
+  text-align: center;
+  font-size: clamp(1.05rem, 2.4vw, 1.65rem);
+  font-weight: 900;
+  letter-spacing: 0.08em;
+  line-height: 1.4;
+  color: #fff;
+  background: rgba(8, 0, 18, 0.62);
+  padding: 0.85rem 1.4rem;
+  border-radius: 18px;
+  box-shadow: 0 0 0 1px rgba(255, 255, 255, 0.22);
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.75);
+}
+
 .dock {
   position: fixed;
   left: 50%;
@@ -586,9 +683,10 @@ button { font-family: inherit; cursor: pointer; }
   background: transparent;
   color: #fff;
   font-weight: 900;
-  letter-spacing: 0.08em;
-  padding: 0.55rem 0.85rem;
+  letter-spacing: 0.06em;
+  padding: 0.5rem 0.7rem;
   border-radius: 999px;
+  white-space: nowrap;
 }
 
 .dock button.active,
@@ -664,6 +762,10 @@ button { font-family: inherit; cursor: pointer; }
   pointer-events: none;
 }
 
+@media (max-width: 1100px) {
+  .dock { width: calc(100% - 20px); overflow-x: auto; justify-content: flex-start; }
+}
+
 @media (max-width: 860px) {
   .split { flex-direction: column; gap: 12px; }
   .story-list { max-width: 100%; }
@@ -674,7 +776,9 @@ button { font-family: inherit; cursor: pointer; }
   .carousel-card { width: min(250px, 58vw); height: 300px; }
   .carousel-card[data-pos="-1"] { transform: translateX(calc(-50% - 42vw)) rotateY(38deg) scale(0.72); }
   .carousel-card[data-pos="1"] { transform: translateX(calc(-50% + 42vw)) rotateY(-38deg) scale(0.72); }
-  .dock { width: calc(100% - 20px); overflow-x: auto; justify-content: flex-start; }
+  .notes-extra { grid-template-columns: 1fr; }
+  .prize-row { grid-template-columns: 5.2rem auto; column-gap: 0.8rem; font-size: 1.35rem; }
+  .reminder-text { font-size: 0.82rem; letter-spacing: 0.02em; padding: 0.7rem 0.8rem; }
   .music-btn { bottom: 88px; }
   .music-credit { bottom: 96px; left: 76px; }
   .page { padding-bottom: 128px; }
